@@ -26,3 +26,8 @@ keeper <- list(seeker, lover)
 workspace()
 ```
 
+It wouldn't be difficult to add a print method for this so that the results look more similar to the simple display in the original package:
+
+```{r}
+lsr::who()
+```

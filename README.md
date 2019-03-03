@@ -25,3 +25,14 @@ workspace()
     ## 1 keeper list           2
     ## 2 lover  numeric        1
     ## 3 seeker character      1
+
+It wouldn't be difficult to add a print method for this so that the results look more similar to the simple display in the original package:
+
+``` r
+lsr::who()
+```
+
+    ##    -- Name --   -- Class --   -- Size --
+    ##    keeper       list          2         
+    ##    lover        numeric       1         
+    ##    seeker       character     1
