@@ -1,6 +1,4 @@
-#' @importFrom magrittr %>%
 #' @importFrom tibble tibble
-#' @importFrom purrr map_dbl
 NULL
 
 #' Prints the contents of the global environment
