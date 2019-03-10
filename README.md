@@ -3,6 +3,8 @@ lsr2
 Danielle Navarro
 3 March 2019
 
+[![Travis build status](https://travis-ci.org/djnavarro/lsr2.svg?branch=master)](https://travis-ci.org/djnavarro/lsr2)
+
 Rethinking the `lsr` package that accompanies [Learning Statistics with R](https://learningstatisticswithr.com). At the moment this is purely experimental, and is as much an exercise in teaching myself package development as anything else. It's an absurdity that I've never learned `roxygen2` until now!
 
 Looking back, my goal in the package was not to introduce any new functionality to R, but rather to provide wrappers and simplifications that novice users (e.g., psychology undergraduate students who might be encountering R, statistics and programming for the first time ever) might find handy.
