@@ -1,15 +1,13 @@
-#' @importFrom tibble tibble
-NULL
-
 #' Prints the contents of the global environment
 #'
 #' @return Something
 #' @examples
 #' workspace()
 #' @export
+#' @importFrom tibble tibble
 workspace <- function() {
 
-  # the callin environment
+  # the calling environment
   call_env <- parent.frame()
 
   # takes a character vector of variable names
