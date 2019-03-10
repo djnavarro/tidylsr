@@ -3,8 +3,8 @@
 #' @return Something
 #' @examples
 #' workspace()
-#' @export
 #' @importFrom tibble tibble
+#' @export
 workspace <- function() {
 
   # the calling environment
@@ -30,7 +30,7 @@ workspace <- function() {
     )
   }
 
-  wspace <- tibble(name = objects(envir = call_env))
+  wspace <- tibble::tibble(name = objects(envir = call_env))
   wspace$class <- eval_there(get_classes)
   wspace$length <- eval_there(get_lengths)
 
