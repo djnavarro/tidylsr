@@ -3,3 +3,10 @@
 language: R
 sudo: false
 cache: packages
+
+# Code coverage in tests: https://github.com/codecov/example-r
+r_packages:
+  - covr
+
+after_success:
+  - Rscript -e 'library(covr); codecov()'
