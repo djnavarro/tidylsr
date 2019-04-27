@@ -13,7 +13,8 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Imports: 
     tibble,
-    vctrs
+    vctrs,
+    methods
 Suggests: 
     testthat (>= 2.1.0),
     covr

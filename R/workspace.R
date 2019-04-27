@@ -5,6 +5,7 @@
 #' workspace()
 #' @importFrom tibble tibble
 #' @importFrom vctrs vec_size
+#' @importFrom methods is
 #' @export
 workspace <- function() {
 
