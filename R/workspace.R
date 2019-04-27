@@ -4,6 +4,7 @@
 #' @examples
 #' workspace()
 #' @importFrom tibble tibble
+#' @importFrom vctrs vec_size
 #' @export
 workspace <- function() {
 
@@ -19,10 +20,16 @@ workspace <- function() {
   # takes a character vector of variable names
   # and returns the length of each variable
   get_lengths <- function(x) {
-    length(eval(as.symbol(x)))
+    #length(eval(as.symbol(x)))
+    len <- try(
+      expr = vctrs::vec_size(eval(as.symbol(x))),
+      silent=TRUE)
+    if(is(len, "try-error")) len <- NA
+    return(len)
   }
 
-
+  # evaluate a function on all objects in the
+  # calling environment
   eval_there <- function(fn) {
     eval(
       expr = sapply(objects(envir = call_env), fn),
@@ -30,6 +37,7 @@ workspace <- function() {
     )
   }
 
+  # return the tibble
   wspace <- tibble::tibble(name = objects(envir = call_env))
   wspace$class <- eval_there(get_classes)
   wspace$length <- eval_there(get_lengths)

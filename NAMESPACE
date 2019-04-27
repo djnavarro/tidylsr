@@ -2,3 +2,4 @@
 
 export(workspace)
 importFrom(tibble,tibble)
+importFrom(vctrs,vec_size)
