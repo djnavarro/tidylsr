@@ -14,7 +14,7 @@
 #' @importFrom stats as.formula
 #' @importFrom stats sd
 #' @export
-ttest_independent <- function(data, outcome, group) {
+ttest_twosample <- function(data, outcome, group) {
 
   # construct formula
   lhs <- rlang::enexpr(outcome)
