@@ -1,4 +1,4 @@
-#' Prints the contents of the global environment
+#' Displays the contents of the workspace
 #'
 #' @return Something
 #' @examples
@@ -7,7 +7,7 @@
 #' @importFrom vctrs vec_size
 #' @importFrom methods is
 #' @export
-workspace <- function() {
+show_workspace <- function() {
 
   # the calling environment
   call_env <- parent.frame()

@@ -14,7 +14,9 @@ RoxygenNote: 6.1.1
 Imports: 
     tibble,
     vctrs,
-    methods
+    methods,
+    rlang,
+    dplyr
 Suggests: 
     testthat (>= 2.1.0),
     covr
