@@ -9,6 +9,10 @@
 #' @importFrom dplyr group_by
 #' @importFrom dplyr summarise
 #' @importFrom dplyr ungroup
+#' @importFrom dplyr %>%
+#' @importFrom stats t.test
+#' @importFrom stats as.formula
+#' @importFrom stats sd
 #' @export
 ttest_independent <- function(data, outcome, group) {
 
@@ -18,7 +22,7 @@ ttest_independent <- function(data, outcome, group) {
   fml <- as.formula(call("~", lhs, rhs))
 
   # run the t-test
-  ttest <- t.test(fml, data)
+  ttest <- stats::t.test(fml, data)
 
   # descriptives
   desc <- data %>%

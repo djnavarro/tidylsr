@@ -2,7 +2,9 @@
 #'
 #' @return Something
 #' @examples
-#' workspace()
+#' seeker <- 1
+#' lover <- "keeper"
+#' show_workspace()
 #' @importFrom tibble tibble
 #' @importFrom vctrs vec_size
 #' @importFrom methods is

@@ -13,5 +13,7 @@ Something
 Displays the contents of the workspace
 }
 \examples{
-workspace()
+seeker <- 1
+lover <- "keeper"
+show_workspace()
 }
