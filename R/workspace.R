@@ -1,15 +1,15 @@
-#' Displays the contents of the workspace
+#' Displays the contents of the calling environment
 #'
 #' @return Something
 #' @examples
 #' seeker <- 1
 #' lover <- "keeper"
-#' show_workspace()
+#' show_environment()
 #' @importFrom tibble tibble
 #' @importFrom vctrs vec_size
 #' @importFrom methods is
 #' @export
-show_workspace <- function() {
+show_environment <- function() {
 
   # the calling environment
   call_env <- parent.frame()
