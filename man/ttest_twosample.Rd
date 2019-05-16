@@ -2,17 +2,19 @@
 % Please edit documentation in R/ttest.R
 \name{ttest_twosample}
 \alias{ttest_twosample}
-\title{Independent samples t-test}
+\title{Two samples t-test}
 \usage{
-ttest_twosample(data, outcome, group)
+ttest_twosample(data, formula = NULL, outcome = NULL, group = NULL)
 }
 \arguments{
 \item{data}{a data frame or tibble}
 
+\item{formula}{the model formula (i.e., outcome ~ group)}
+
 \item{outcome}{the outcome variable (quoted)}
 
-\item{group}{the grouping variable (quote)}
+\item{group}{the grouping variable (quoted)}
 }
 \description{
-Independent samples t-test
+Two samples t-test
 }
