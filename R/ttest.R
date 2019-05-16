@@ -17,12 +17,23 @@
 #' @export
 ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL) {
 
-  # construct formula if needed
-  if(!is.null(formula)) {
+  if(is.null(formula)) {
+
+    # if the user does not specify a formula look for
+    # outcome and group arguments to construct it
     outcome <- rlang::enexpr(outcome)
     group <- rlang::enexpr(group)
     formula <- as.formula(call("~", outcome, group))
+
+  } else {
+
+    # if the user specifies a formula, extract the
+    # outcome and group variables from it
+    outcome <- formula[[2]]
+    group <- formula[[3]]
+
   }
+
 
   # run the t-test
   ttest <- stats::t.test(formula, data)
