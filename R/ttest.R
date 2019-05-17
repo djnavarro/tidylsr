@@ -52,10 +52,9 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
   if(is.factor(grp_names)) grp_names <- as.character(grp_names)
 
   # format the output
-  out <- list(
-    var_outcome = outcome,
-    var_group = group,
-    var_id = NA,
+  out <- new_lsr_ttest(
+    outcome = outcome,
+    group = group,
     t = strip(ttest$statistic),
     df = strip(ttest$parameter),
     p = strip(ttest$p.value),
@@ -65,12 +64,43 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
     group_sd = c(sd(x), sd(y)),
     group_name = grp_names,
     hypotheses = hyp$tidy,
-    test_type = ifelse(equal_variances, "Student", "Welch"),
-    null_mean = NULL,
-    effect_size = NULL
+    test_type = ifelse(equal_variances, "Student", "Welch")
   )
 
   return(out)
+}
+
+
+# Constructor function for the lsr_ttest class. At the moment
+# it is just ridiculous duplication but I suspect I'll want to
+# use it to check inputs in some cases?
+new_lsr_ttest <- function(outcome = NULL, group = NULL, id = NULL, t = NULL,
+                          df = NULL, p = NULL, conf_int = NULL, conf_lvl = NULL,
+                          group_mean = NULL, group_sd = NULL, group_name = NULL,
+                          hypotheses = NULL, test_type = NULL, null_mean = NULL,
+                          effect_size = NULL) {
+
+  structure(
+    list(
+      outcome = outcome,
+      group = group,
+      id = id,
+      t = t,
+      df = df,
+      p = p,
+      conf_int = conf_int,
+      conf_lvl = conf_lvl,
+      group_mean = group_mean,
+      group_sd = group_sd,
+      group_name = group_name,
+      hypotheses = hypotheses,
+      test_type = test_type,
+      null_mean = null_mean,
+      effect_size = effect_size
+    ),
+    class = "lsr_ttest"
+  )
+
 }
 
 
