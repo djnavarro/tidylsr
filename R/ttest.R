@@ -60,13 +60,14 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 }
 
 
+# construct a tidy version of the null and alternative hypothesis, as well as
+# the character string used by t.test in base R.
+ttest_build_hyp <- function(alt, groups) {
 
-ttest_build_hyp <- function(alt_expr, groups) {
-
-  alt_expr <- rlang::expr(!!alt_expr)
+  alt <- rlang::expr(!!alt)
 
   # two sided test
-  if(is.null(alt_expr)) {
+  if(is.null(alt)) {
     return(list(
       tidy <- c(null = "equal means", alternative = "different means"),
       base <- "two.sided"
@@ -74,15 +75,15 @@ ttest_build_hyp <- function(alt_expr, groups) {
   }
 
   # one sided test should be an expression of length 3
-  if(length(alt_expr) != 3) {
+  if(length(alt) != 3) {
     stop("invalid expression")
   }
 
   # parse input
   groups <- as.character(groups)
-  group1 <- as.character(alt_expr[[2]])
-  group2 <- as.character(alt_expr[[3]])
-  direction <- as.character(alt_expr[[1]])
+  group1 <- as.character(alt[[2]])
+  group2 <- as.character(alt[[3]])
+  direction <- as.character(alt[[1]])
 
   flag <- 0
 
@@ -116,15 +117,17 @@ ttest_build_hyp <- function(alt_expr, groups) {
   ))
 }
 
+# construct a list containing formula (as a formula), outcome (as an expression)
+# and group (as an expression)
 ttest_build_mod <- function(formula, outcome, group) {
 
-  # build formula from outcome and group
+  # build formula from outcome and group...
   if(is.null(formula)) {
     outcome <- rlang::enexpr(outcome)
     group <- rlang::enexpr(group)
     formula <- as.formula(call("~", outcome, group))
 
-  # or extract outcome and group from formula
+  # ...or extract outcome and group from formula
   } else {
     outcome <- formula[[2]]
     group <- formula[[3]]
@@ -132,9 +135,10 @@ ttest_build_mod <- function(formula, outcome, group) {
 
   # return all three
   return(list(formula = formula, outcome = outcome, group = group))
-
 }
 
+
+# calculate means and standard deviations for each group.
 ttest_build_desc <- function(data, mod) {
   data %>%
     dplyr::group_by(!!(mod$group)) %>%
