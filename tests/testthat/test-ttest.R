@@ -32,10 +32,10 @@ test_that("one and two-sided p-values add appropriately", {
 })
 
 
-if(FALSE) {
-  iris %>%
-    janitor::clean_names() %>%
-    filter(species != "versicolor") %>%
-    ttest_twosample(sepal_length ~ species,
-                    alternative = "virginica" > "setosa")
-}
+# if(FALSE) {
+#   iris %>%
+#     janitor::clean_names() %>%
+#     filter(species != "versicolor") %>%
+#     ttest_twosample(sepal_length ~ species,
+#                     alternative = "virginica" > "setosa")
+# }
