@@ -49,20 +49,11 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 
 
   # specify null hypothesis -------------------------------------------------
-  if(is.null(alternative)) { # two sided
-    hyp <- c(null = "equal means", alternative = "different means")
-    alt <- "two.sided"
-
-  } else { # parse user expression to specify one sided
-    tmp <- ttest_build_hyp(alternative, grp_names)
-    hyp <- tmp[[1]]
-    alt <- tmp[[2]]
-  }
-
+  hyp <- ttest_build_hyp(alternative, grp_names)
 
 
   # run the t-test ----------------------------------------------------------
-  ttest <- stats::t.test(formula, data, alternative = alt,
+  ttest <- stats::t.test(formula, data, alternative = hyp$base,
                          var.equal = equal_variances, ...)
 
 
@@ -79,7 +70,7 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
     group_mean = desc$m,
     group_sd = desc$s,
     group_name = grp_names,
-    hypotheses = hyp,
+    hypotheses = hyp$tidy,
     test_type = ifelse(equal_variances, "Student", "Welch"),
     null_mean = NULL,
     effect_size = NULL
@@ -94,47 +85,55 @@ ttest_build_hyp <- function(alt_expr, groups) {
 
   alt_expr <- rlang::expr(!!alt_expr)
 
-  if(length(alt_expr) != 3) {
-    stop("invalid expression")
-  } else {
-
-    groups <- as.character(groups)
-
-    group1 <- as.character(alt_expr[[2]])
-    group2 <- as.character(alt_expr[[3]])
-    direction <- as.character(alt_expr[[1]])
-
-    flag <- 0
-
-    # if the data has the groups in the opposite order to the
-    # one specified by the user, reverse the labels
-    if(group1 == groups[2] && group2 == groups[1]) {
-      tmp <- group1
-      group1 <- group2
-      group2 <- tmp
-      flag <- 1-flag
-
-    } else if (group1 != groups[1] || group2 != groups[2]) {
-      stop("one-sided hypotheses must specify group names and direction")
-    }
-
-    # flip group ordering if need be
-    if(direction == "<") {
-      tmp <- group1
-      group1 <- group2
-      group2 <- tmp
-      flag <- 1- flag
-
-    } else if(!(direction == ">"))) {
-      stop("one-sided hypotheses must specify group names and direction")
-    }
-
-    # hypotheses
-    hyp <- c(null = paste0(group1, " <= ", group2),
-             alternative = paste0(group1, " > ", group2))
-    alt <- ifelse(flag==0, "greater", "less")
+  # two sided test
+  if(is.null(alt_expr)) {
+    return(list(
+      tidy <- c(null = "equal means", alternative = "different means"),
+      base <- "two.sided"
+    ))
   }
 
-  return(list(hyp=hyp, alt=alt))
+  # one sided test should be an expression of length 3
+  if(length(alt_expr) != 3) {
+    stop("invalid expression")
+  }
+
+  # parse input
+  groups <- as.character(groups)
+  group1 <- as.character(alt_expr[[2]])
+  group2 <- as.character(alt_expr[[3]])
+  direction <- as.character(alt_expr[[1]])
+
+  flag <- 0
+
+  # if the data has the groups in the opposite order to the
+  # one specified by the user, reverse the labels
+  if(group1 == groups[2] && group2 == groups[1]) {
+    tmp <- group1
+    group1 <- group2
+    group2 <- tmp
+    flag <- 1-flag
+
+  } else if (group1 != groups[1] || group2 != groups[2]) {
+    stop("one-sided hypotheses must specify group names and direction")
+  }
+
+  # flip group ordering if need be
+  if(direction == "<") {
+    tmp <- group1
+    group1 <- group2
+    group2 <- tmp
+    flag <- 1- flag
+
+  } else if(!(direction == ">")) {
+    stop("one-sided hypotheses must specify group names and direction")
+  }
+
+  return(list(
+    tidy = c(null = paste0(group1, " <= ", group2),
+             alternative = paste0(group1, " > ", group2)),
+    base = ifelse(flag==0, "greater", "less")
+  ))
+
 }
 
