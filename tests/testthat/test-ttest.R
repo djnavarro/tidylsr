@@ -30,3 +30,12 @@ test_that("one and two-sided p-values add appropriately", {
   expect_equal(min(p1,p2), p3/2)
 
 })
+
+
+if(FALSE) {
+  iris %>%
+    janitor::clean_names() %>%
+    filter(species != "versicolor") %>%
+    ttest_twosample(sepal_length ~ species,
+                    alternative = "virginica" > "setosa")
+}

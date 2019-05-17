@@ -22,33 +22,47 @@
 ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
                             alternative = NULL, equal_variances = FALSE, ...) {
 
-  # quote the to-be-quoted arguments
+  # alternative, outcome and group as expressions
   alternative <- rlang::enexpr(alternative)
-  outcome <- rlang::enexpr(outcome)
-  group <- rlang::enexpr(group)
+  if(is.null(formula)) {
+    outcome <- rlang::enexpr(outcome)
+    group <- rlang::enexpr(group)
+  } else {
+    outcome <- formula[[2]]
+    group <- formula[[3]]
+  }
 
-  # set up
-  mod <- ttest_build_mod(formula, !!outcome, !!group)  # specify model
-  desc <- ttest_build_desc(data, mod)                  # descriptives
-  grp_names <- dplyr::pull(desc, 1)                    # group names
-  hyp <- ttest_build_hyp(alternative, grp_names)       # specify hypotheses
+  # outcome and group can just be strings
+  outcome <- as.character(outcome)
+  group <- as.character(group)
+
+  # extract the group names and the two samples
+  grp_names <- unique(data[[group]])
+  x <- data[[outcome]][data[[group]] == grp_names[1]]
+  y <- data[[outcome]][data[[group]] == grp_names[2]]
+
+  # specify hypothesis
+  hyp <- ttest_build_hyp(alternative, grp_names)
 
   # run the t-test
-  ttest <- stats::t.test(mod$formula, data, alternative = hyp$base,
+  ttest <- stats::t.test(x=x, y=y, alternative = hyp$base,
                          var.equal = equal_variances, ...)
+
+  # don't store group names as a factor
+  if(is.factor(grp_names)) grp_names <- as.character(grp_names)
 
   # format the output
   out <- list(
-    var_outcome = as.character(mod$outcome),
-    var_group = as.character(mod$group),
+    var_outcome = outcome,
+    var_group = group,
     var_id = NA,
     t = strip(ttest$statistic),
     df = strip(ttest$parameter),
     p = strip(ttest$p.value),
     conf_int = strip(ttest$conf.int),
     conf_lvl = attr(ttest$conf.int, "conf.level"),
-    group_mean = desc$m,
-    group_sd = desc$s,
+    group_mean = c(mean(x), mean(y)),
+    group_sd = c(sd(x), sd(y)),
     group_name = grp_names,
     hypotheses = hyp$tidy,
     test_type = ifelse(equal_variances, "Student", "Welch"),
@@ -62,7 +76,7 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 
 # construct a tidy version of the null and alternative hypothesis, as well as
 # the character string used by t.test in base R.
-ttest_build_hyp <- function(alt, groups) {
+ttest_build_hyp <- function(alt, grp) {
 
   alt <- rlang::expr(!!alt)
 
@@ -75,75 +89,40 @@ ttest_build_hyp <- function(alt, groups) {
   }
 
   # one sided test should be an expression of length 3
-  if(length(alt) != 3) {
-    stop("invalid expression")
-  }
+  if(length(alt) != 3) { stop("invalid expression") }
 
   # parse input
-  groups <- as.character(groups)
-  group1 <- as.character(alt[[2]])
-  group2 <- as.character(alt[[3]])
-  direction <- as.character(alt[[1]])
-
-  flag <- 0
-
-  # if the data has the groups in the opposite order to the
-  # one specified by the user, reverse the labels
-  if(group1 == groups[2] && group2 == groups[1]) {
-    tmp <- group1
-    group1 <- group2
-    group2 <- tmp
-    flag <- 1-flag
-
-  } else if (group1 != groups[1] || group2 != groups[2]) {
-    stop("one-sided hypotheses must specify group names and direction")
-  }
-
-  # flip group ordering if need be
-  if(direction == "<") {
-    tmp <- group1
-    group1 <- group2
-    group2 <- tmp
-    flag <- 1- flag
-
-  } else if(!(direction == ">")) {
-    stop("one-sided hypotheses must specify group names and direction")
-  }
-
-  return(list(
-    tidy = c(null = paste0(group1, " <= ", group2),
-             alternative = paste0(group1, " > ", group2)),
-    base = ifelse(flag==0, "greater", "less")
-  ))
-}
-
-# construct a list containing formula (as a formula), outcome (as an expression)
-# and group (as an expression)
-ttest_build_mod <- function(formula, outcome, group) {
-
-  # build formula from outcome and group...
-  if(is.null(formula)) {
-    outcome <- rlang::enexpr(outcome)
-    group <- rlang::enexpr(group)
-    formula <- as.formula(call("~", outcome, group))
-
-  # ...or extract outcome and group from formula
+  dir <- as.character(alt[[1]])
+  if(dir == ">") {
+    x <- as.character(alt[[2]])
+    y <- as.character(alt[[3]])
+  } else if(dir == "<") {
+    x <- as.character(alt[[2]])
+    y <- as.character(alt[[3]])
   } else {
-    outcome <- formula[[2]]
-    group <- formula[[3]]
+    stop("one-sided `alternative` must specify directon using `<` or `>`")
   }
 
-  # return all three
-  return(list(formula = formula, outcome = outcome, group = group))
+  # string describing the tidy hypothesis
+  tidy = c(null = paste0(x, " <= ", y),
+           alternative = paste0(x, " > ", y))
+
+  # if user has specified groups in the expected order
+  # (x maps to first, y maps to second) return "greater"
+  if(x == grp[1] & y == grp[2]) {
+    return(list(tidy = tidy, base = "greater"))
+  }
+
+  # if user spec is reverse, return "less"
+  if(x == grp[2] & y == grp[1]) {
+    return(list(tidy = tidy, base = "less"))
+  }
+
+  # it it does not match, throw error
+  stop("group names in `alternative` must match `data`")
+
 }
 
 
-# calculate means and standard deviations for each group.
-ttest_build_desc <- function(data, mod) {
-  data %>%
-    dplyr::group_by(!!(mod$group)) %>%
-    dplyr::summarise(m = mean(!!(mod$outcome)), s = sd(!!(mod$outcome))) %>%
-    dplyr::ungroup()
-}
 
 
