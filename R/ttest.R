@@ -22,30 +22,24 @@
 ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
                             alternative = NULL, equal_variances = FALSE, ...) {
 
+  # quote the to-be-quoted arguments
   alternative <- rlang::enexpr(alternative)
+  outcome <- rlang::enexpr(outcome)
+  group <- rlang::enexpr(group)
 
-  # construct formula, outcome and group ------------------------------------
-  if(is.null(formula)) {
-    # if the user does not specify a formula look for
-    # outcome and group arguments to construct it
-    outcome <- rlang::enexpr(outcome)
-    group <- rlang::enexpr(group)
-    formula <- as.formula(call("~", outcome, group))
+  # construct the model
+  mod <- ttest_build_mod(formula, !!outcome, !!group)
 
-  } else {
-    # if the user specifies a formula, extract the
-    # outcome and group variables from it
-    outcome <- formula[[2]]
-    group <- formula[[3]]
-  }
-
+  # just to make sure I don't accidentally write code
+  # that tries to use the original variables
+  rm(formula, outcome, group)
 
   # calculate relevant descriptives -----------------------------------------
   desc <- data %>%
-    dplyr::group_by(!!group) %>%
-    dplyr::summarise(m = mean(!!outcome), s = sd(!!outcome)) %>%
+    dplyr::group_by(!!(mod$group)) %>%
+    dplyr::summarise(m = mean(!!(mod$outcome)), s = sd(!!(mod$outcome))) %>%
     dplyr::ungroup()
-  grp_names <- dplyr::pull(desc, !!group)
+  grp_names <- dplyr::pull(desc, !!(mod$group))
 
 
   # specify null hypothesis -------------------------------------------------
@@ -53,14 +47,14 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 
 
   # run the t-test ----------------------------------------------------------
-  ttest <- stats::t.test(formula, data, alternative = hyp$base,
+  ttest <- stats::t.test(mod$formula, data, alternative = hyp$base,
                          var.equal = equal_variances, ...)
 
 
   # format the output -------------------------------------------------------
   out <- list(
-    var_outcome = as.character(outcome),
-    var_group = as.character(group),
+    var_outcome = as.character(mod$outcome),
+    var_group = as.character(mod$group),
     var_id = NA,
     t = strip(ttest$statistic),
     df = strip(ttest$parameter),
@@ -136,4 +130,27 @@ ttest_build_hyp <- function(alt_expr, groups) {
   ))
 
 }
+
+
+ttest_build_mod <- function(formula, outcome, group) {
+
+  # build formula from outcome and group
+  if(is.null(formula)) {
+    outcome <- rlang::enexpr(outcome)
+    group <- rlang::enexpr(group)
+    formula <- as.formula(call("~", outcome, group))
+
+  # or extract outcome and group from formula
+  } else {
+    outcome <- formula[[2]]
+    group <- formula[[3]]
+  }
+
+  # return all three
+  return(list(formula = formula, outcome = outcome, group = group))
+
+}
+
+
+
 
