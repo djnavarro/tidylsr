@@ -2,10 +2,10 @@
 % Please edit documentation in R/ttest.R
 \name{ttest_twosample}
 \alias{ttest_twosample}
-\title{Twor samples t-test}
+\title{Two samples t-test}
 \usage{
 ttest_twosample(data, formula = NULL, outcome = NULL, group = NULL,
-  one_sided_null = FALSE, equal_variances = FALSE, ...)
+  alternative = NULL, equal_variances = FALSE, ...)
 }
 \arguments{
 \item{data}{a data frame or tibble}
@@ -16,12 +16,12 @@ ttest_twosample(data, formula = NULL, outcome = NULL, group = NULL,
 
 \item{group}{the grouping variable (quoted)}
 
-\item{one_sided_null}{an expression specifying a one-sided null hypothesis (quoted) or FALSE (default, indicates two sided)}
+\item{alternative}{an expression specifying the null hypothesis (quoted) or FALSE (default, indicates two sided)}
 
 \item{equal_variances}{should the test assume equality of variance? (default = FALSE)}
 
 \item{...}{other arguments to be passed to t.test}
 }
 \description{
-Twor samples t-test
+Two samples t-test
 }

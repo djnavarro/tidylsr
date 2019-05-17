@@ -5,7 +5,7 @@
 #' @param formula the model formula (i.e., outcome ~ group)
 #' @param outcome the outcome variable (quoted)
 #' @param group the grouping variable (quoted)
-#' @param one_sided_null an expression specifying a one-sided null hypothesis (quoted) or FALSE (default, indicates two sided)
+#' @param alternative an expression specifying the null hypothesis (quoted) or FALSE (default, indicates two sided)
 #' @param equal_variances should the test assume equality of variance? (default = FALSE)
 #' @param ... other arguments to be passed to t.test
 #' @importFrom rlang enquo
@@ -20,7 +20,9 @@
 #' @importFrom stats sd
 #' @export
 ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
-                            one_sided_null = FALSE, equal_variances = FALSE, ...) {
+                            alternative = NULL, equal_variances = FALSE, ...) {
+
+  alternative <- rlang::enexpr(alternative)
 
   # construct formula, outcome and group ------------------------------------
   if(is.null(formula)) {
@@ -47,13 +49,14 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 
 
   # specify null hypothesis -------------------------------------------------
-  if(is.logical(one_sided_null) && one_sided_null == FALSE) {
+  if(is.null(alternative)) { # two sided
     hyp <- c(null = "equal means", alternative = "different means")
     alt <- "two.sided"
-  } else {
-    tmp <- rlang::enexpr(one_sided_null)
-    hyp <- ttest_check_null(tmp, grp_names)
-    alt <- ttest_convert_hyp(hyp, grp_names)
+
+  } else { # parse user expression to specify one sided
+    tmp <- ttest_build_hyp(alternative, grp_names)
+    hyp <- tmp[[1]]
+    alt <- tmp[[2]]
   }
 
 
@@ -65,12 +68,12 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 
   # format the output -------------------------------------------------------
   out <- list(
-    variables = c(outcome = as.character(outcome),
-                  group = as.character(group),
-                  id = NA),
-    test = c(t = strip(ttest$statistic),
-             df = strip(ttest$parameter),
-             p = strip(ttest$p.value)),
+    var_outcome = as.character(outcome),
+    var_group = as.character(group),
+    var_id = NA,
+    t = strip(ttest$statistic),
+    df = strip(ttest$parameter),
+    p = strip(ttest$p.value),
     conf_int = strip(ttest$conf.int),
     conf_lvl = attr(ttest$conf.int, "conf.level"),
     group_mean = desc$m,
@@ -87,19 +90,51 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 
 
 
-ttest_check_null <- function(h0, groups) {
+ttest_build_hyp <- function(alt_expr, groups) {
 
-  if(is.logical(h0) && h0 == FALSE) {
-    hyp <- c(null = "equal means", alternative = "different means")
+  alt_expr <- rlang::expr(!!alt_expr)
+
+  if(length(alt_expr) != 3) {
+    stop("invalid expression")
   } else {
-    hyp <- c(null = "equal means", alternative = "different means")
+
+    groups <- as.character(groups)
+
+    group1 <- as.character(alt_expr[[2]])
+    group2 <- as.character(alt_expr[[3]])
+    direction <- as.character(alt_expr[[1]])
+
+    flag <- 0
+
+    # if the data has the groups in the opposite order to the
+    # one specified by the user, reverse the labels
+    if(group1 == groups[2] && group2 == groups[1]) {
+      tmp <- group1
+      group1 <- group2
+      group2 <- tmp
+      flag <- 1-flag
+
+    } else if (group1 != groups[1] || group2 != groups[2]) {
+      stop("one-sided hypotheses must specify group names and direction")
+    }
+
+    # flip group ordering if need be
+    if(direction == "<") {
+      tmp <- group1
+      group1 <- group2
+      group2 <- tmp
+      flag <- 1- flag
+
+    } else if(!(direction == ">"))) {
+      stop("one-sided hypotheses must specify group names and direction")
+    }
+
+    # hypotheses
+    hyp <- c(null = paste0(group1, " <= ", group2),
+             alternative = paste0(group1, " > ", group2))
+    alt <- ifelse(flag==0, "greater", "less")
   }
-  return(hyp)
 
+  return(list(hyp=hyp, alt=alt))
 }
 
-ttest_convert_hyp <- function(hyps, groups) {
-
-  return("two.sided")
-
-}
