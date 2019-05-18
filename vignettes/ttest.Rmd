@@ -1,0 +1,31 @@
+---
+title: "Running t-tests in lsr2"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Running t-tests in lsr2}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(lsr2)
+library(dplyr)
+```
+
+Just a minimal example
+
+```{r}
+iris %>% 
+  filter(Species != "versicolor") %>%
+  ttest_twosample(Sepal.Length ~ Species)
+```
+  
+
+
