@@ -1,4 +1,4 @@
 library(testthat)
-library(lsr2)
+library(tidylsr)
 
-test_check("lsr2")
+test_check("tidylsr")

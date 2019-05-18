@@ -1,8 +1,8 @@
 ---
-title: "Running t-tests in lsr2"
+title: "Running t-tests with tidylsr"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Running t-tests in lsr2}
+  %\VignetteIndexEntry{Running t-tests with tidylsr}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(lsr2)
+library(tidylsr)
 library(dplyr)
 ```
 
