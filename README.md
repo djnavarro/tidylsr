@@ -12,6 +12,8 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/tidylsr)](https://cran.r-project.org/package=tidylsr)
 
+<img src = "./other/tidylsr.png" width = "200px" style = "float:right">
+
 Rethinking the `lsr` package that accompanies [Learning Statistics with
 R](https://learningstatisticswithr.com). In the original book, the goal
 of the package was to provide a few convenient wrapper functions and
