@@ -1,16 +1,16 @@
 
-#' Two samples t-test
+#' Two sample t-test
 #'
 #' @param data a data frame or tibble
 #' @param formula the model formula (i.e., outcome ~ group)
 #' @param outcome the outcome variable (quoted)
 #' @param group the grouping variable (quoted)
-#' @param big_alternative value of specifying which group is larger under the alternative, or NULL (default) to specify a two-sided test
+#' @param test_greater group proposed to be larger under the alternative (character), or NULL (the default, for a two-sided test)
 #' @param equal_variances should the test assume equality of variance? (default = FALSE)
 #' @param ... other arguments to be passed to t.test
 #' @export
 ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
-                            big_alternative = NULL, equal_variances = FALSE, ...) {
+                            test_greater = NULL, equal_variances = FALSE, ...) {
 
   # outcome and group as expressions
   if(is.null(formula)) {
@@ -31,7 +31,7 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
   y <- data[[outcome]][data[[group]] == grp_names[2]]
 
   # specify the alternative hypothesis
-  alt <- get_direction(big_alternative, grp_names)
+  alt <- get_direction_two(test_greater, grp_names)
 
   # run the t-test
   ttest <- stats::t.test(x=x, y=y, alternative = alt,
@@ -57,12 +57,20 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 }
 
 # specify the test direction
-get_direction <- function(big_alt, grp_names) {
-  if(is.null(big_alt)) return("two.sided")
-  if(big_alt == grp_names[1]) return("greater")
-  if(big_alt == grp_names[2]) return("less")
-  stop("`big_alternative` must be NULL or a value indicating a group",
+get_direction_two <- function(grt, grp_names) {
+  if(is.null(grt)) return("two.sided")
+  if(grt == grp_names[1]) return("greater")
+  if(grt == grp_names[2]) return("less")
+  stop("`test_greater` must be NULL or a value indicating a group",
        call. = FALSE)
+}
+
+# specify the test direction for a one sample test
+get_direction_one <- function(grt) {
+  if(is.null(grt)) return("two.sided")
+  if(grt == TRUE) return("greater")
+  if(grt == FALSE) return("less")
+  stop("`test_greater` must be NULL, TRUE or FALSE", call. = FALSE)
 }
 
 # extract group names (and don't return a factor)
@@ -72,7 +80,6 @@ get_group_names <- function(grp) {
   return(grp_names)
 }
 
-
 #' Paired samples t-test
 #'
 #' @param data a data frame or tibble
@@ -80,12 +87,12 @@ get_group_names <- function(grp) {
 #' @param outcome the outcome variable (quoted)
 #' @param group the grouping variable (quoted)
 #' @param id the id variable (qouoted)
-#' @param big_alternative value of specifying which group is larger under the alternative, or NULL (default) to specify a two-sided test
+#' @param test_greater group proposed to be larger under the alternative (character), or NULL (the default, for a two-sided test)
 #' @param ... other arguments to be passed to t.test
 #' @importFrom dplyr %>%
 #' @export
 ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
-                         id = NULL, big_alternative = NULL,  ...) {
+                         id = NULL, test_greater = NULL, ...) {
 
   # outcome, group, id as expressions
   if(is.null(formula)) {
@@ -119,7 +126,7 @@ ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
   y <- wide_data[[grp_names[2]]]
 
   # specify the alternative hypothesis
-  alt <- get_direction(big_alternative, grp_names)
+  alt <- get_direction_two(test_greater, grp_names)
 
   # run the t-test
   ttest <- stats::t.test(x=x, y=y, alternative = alt, paired = TRUE, ...)
@@ -150,11 +157,11 @@ ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
 #' @param data a data frame or tibble
 #' @param outcome the outcome variable (quoted)
 #' @param null_mean the fixed mean to test against (numeric)
-#' @param alternative character specifying "two.sided" (the default), "greater", or "less"
+#' @param test_greater alternative hypothesis that the mean exceeds 'null_mean' (TRUE), is less than 'null_mean' (FALSE) or two-sided (NULL, the default)
 #' @param ... other arguments to be passed to t.test
 #' @export
 ttest_onesample <- function(data, outcome = NULL, null_mean = NULL,
-                            alternative = "two.sided", ...) {
+                            test_greater = NULL, ...) {
 
   # extract outcome variable as character string
   outcome <- as.character(rlang::enexpr(outcome))
@@ -162,8 +169,11 @@ ttest_onesample <- function(data, outcome = NULL, null_mean = NULL,
   # extract the sample
   x <- data[[outcome]]
 
+  # specify the alternative
+  alt <- get_direction_one(test_greater)
+
   # run the t-test
-  ttest <- stats::t.test(x=x, mu=null_mean, alternative = alternative, ...)
+  ttest <- stats::t.test(x=x, mu=null_mean, alternative = alt, ...)
 
   # format the output
   out <- new_lsr_ttest(
@@ -176,7 +186,7 @@ ttest_onesample <- function(data, outcome = NULL, null_mean = NULL,
     conf_lvl = attr(ttest$conf.int, "conf.level"),
     sample_mean = mean(x),
     sample_sd = stats::sd(x),
-    alternative = alternative,
+    alternative = alt,
     test_type = "One sample"
   )
 

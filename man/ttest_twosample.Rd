@@ -2,10 +2,10 @@
 % Please edit documentation in R/ttest.R
 \name{ttest_twosample}
 \alias{ttest_twosample}
-\title{Two samples t-test}
+\title{Two sample t-test}
 \usage{
 ttest_twosample(data, formula = NULL, outcome = NULL, group = NULL,
-  big_alternative = NULL, equal_variances = FALSE, ...)
+  test_greater = NULL, equal_variances = FALSE, ...)
 }
 \arguments{
 \item{data}{a data frame or tibble}
@@ -16,12 +16,12 @@ ttest_twosample(data, formula = NULL, outcome = NULL, group = NULL,
 
 \item{group}{the grouping variable (quoted)}
 
-\item{big_alternative}{value of specifying which group is larger under the alternative, or NULL (default) to specify a two-sided test}
+\item{test_greater}{group proposed to be larger under the alternative (character), or NULL (the default, for a two-sided test)}
 
 \item{equal_variances}{should the test assume equality of variance? (default = FALSE)}
 
 \item{...}{other arguments to be passed to t.test}
 }
 \description{
-Two samples t-test
+Two sample t-test
 }

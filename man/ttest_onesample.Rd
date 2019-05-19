@@ -5,7 +5,7 @@
 \title{One sample t-test}
 \usage{
 ttest_onesample(data, outcome = NULL, null_mean = NULL,
-  alternative = "two.sided", ...)
+  test_greater = NULL, ...)
 }
 \arguments{
 \item{data}{a data frame or tibble}
@@ -14,7 +14,7 @@ ttest_onesample(data, outcome = NULL, null_mean = NULL,
 
 \item{null_mean}{the fixed mean to test against (numeric)}
 
-\item{alternative}{character specifying "two.sided" (the default), "greater", or "less"}
+\item{test_greater}{alternative hypothesis that the mean exceeds \code{null_mean} (TRUE), is less than \code{null_mean} (FALSE) or two-sided (NULL, the default)}
 
 \item{...}{other arguments to be passed to t.test}
 }

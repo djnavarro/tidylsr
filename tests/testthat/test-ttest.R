@@ -17,10 +17,9 @@ test_that("all three versions of ttest_twosample give the same answer", {
 
 test_that("one and two-sided p-values add appropriately", {
 
-  tst1 <- ttest_twosample(tbl, out ~ grp, big_alternative = "grp A")
-  tst2 <- ttest_twosample(tbl, out ~ grp, big_alternative = "grp B")
+  tst1 <- ttest_twosample(tbl, out ~ grp, test_greater = "grp A")
+  tst2 <- ttest_twosample(tbl, out ~ grp, test_greater = "grp B")
   tst3 <- ttest_twosample(tbl, out ~ grp)
-
 
   p1 <- tst1$p
   p2 <- tst2$p
@@ -30,7 +29,6 @@ test_that("one and two-sided p-values add appropriately", {
   expect_equal(min(p1,p2), p3/2)
 
 })
-
 
 
 tbl2 <- tibble(
@@ -53,12 +51,3 @@ test_that("all versions of ttest_paired give the same answer", {
 
 })
 
-
-
-# if(FALSE) {
-#   iris %>%
-#     janitor::clean_names() %>%
-#     filter(species != "versicolor") %>%
-#     ttest_twosample(sepal_length ~ species,
-#                     alternative = "virginica" > "setosa")
-# }
