@@ -19,7 +19,7 @@ library(tidylsr)
 library(dplyr)
 ```
 
-Just a minimal example
+A minimal example for the two sample test:
 
 ```{r}
 iris %>% 
@@ -27,5 +27,14 @@ iris %>%
   ttest_twosample(Sepal.Length ~ Species)
 ```
   
+
+A minimal example for the one sample test:
+
+```{r}
+iris %>% 
+  filter(Species == "virginica") %>%
+  ttest_onesample(outcome = Sepal.Length, null_mean = 6)
+```
+
 
 
