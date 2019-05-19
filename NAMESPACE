@@ -2,7 +2,9 @@
 
 export(show_environment)
 export(ttest_onesample)
+export(ttest_paired)
 export(ttest_twosample)
+importFrom(dplyr,"%>%")
 importFrom(methods,is)
 importFrom(tibble,tibble)
 importFrom(vctrs,vec_size)

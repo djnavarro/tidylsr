@@ -62,6 +62,81 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 
 
 
+#' Paired samples t-test
+#'
+#' @param data a data frame or tibble
+#' @param formula the model formula (i.e., outcome ~ group)
+#' @param outcome the outcome variable (quoted)
+#' @param group the grouping variable (quoted)
+#' @param id the id variable (qouoted)
+#' @param alternative an expression specifying the null hypothesis (quoted) or FALSE (default, indicates two sided)
+#' @param ... other arguments to be passed to t.test
+#' @importFrom dplyr %>%
+#' @export
+ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
+                         id = NULL, alternative = NULL,  ...) {
+
+  # alternative, outcome, group, id as expressions
+  alternative <- rlang::enexpr(alternative)
+  if(is.null(formula)) {
+    outcome <- rlang::enexpr(outcome)
+    group <- rlang::enexpr(group)
+    id <- rlang::enexpr(id)
+  } else {
+    outcome <- formula[[2]]
+    rhs <- formula[[3]]
+    rhs_vars <- c(rhs[[2]], rhs[[3]])
+    id_ind <- grep("^\\(.*\\)$", rhs_vars)
+    group <- rhs_vars[[3-id_ind]]
+    id <- rhs_vars[[id_ind]][2] # element 1 is "(", element 2 is var name
+  }
+
+  # outcome and group can just be strings
+  outcome <- as.character(outcome)
+  group <- as.character(group)
+  id <- as.character(id)
+
+  # extract the group names and the two samples
+  grp_names <- unique(data[[group]])
+
+  # create a wide form version of the data
+  wide_data <- data %>%
+    dplyr::select(!!id, !!group, !!outcome) %>%
+    tidyr::spread(key = !!group, value = !!outcome)
+
+  # extract the paired samples
+  x <- wide_data[[grp_names[1]]]
+  y <- wide_data[[grp_names[2]]]
+
+  # specify hypothesis
+  #hyp <- ttest_build_hyp(alternative, grp_names)
+
+  # run the t-test
+  ttest <- stats::t.test(x=x, y=y, alternative = "two.sided", paired = TRUE, ...)
+
+  # don't store group names as a factor
+  if(is.factor(grp_names)) grp_names <- as.character(grp_names)
+
+  # format the output
+  out <- new_lsr_ttest(
+    outcome = outcome,
+    group = group,
+    t = strip(ttest$statistic),
+    df = strip(ttest$parameter),
+    p = strip(ttest$p.value),
+    conf_int = strip(ttest$conf.int),
+    conf_lvl = attr(ttest$conf.int, "conf.level"),
+    sample_mean = c(mean(x), mean(y)),
+    sample_sd = c(stats::sd(x), stats::sd(y)),
+    group_name = grp_names,
+    #hypotheses = hyp$tidy,
+    test_type = "Paired"
+  )
+
+  return(out)
+}
+
+
 #' One sample t-test
 #'
 #' @param data a data frame or tibble
@@ -132,7 +207,7 @@ ttest_onesample <- function(data, outcome = NULL, null_mean = NULL,
 # use it to check inputs in some cases?
 new_lsr_ttest <- function(outcome = NULL, group = NULL, id = NULL, t = NULL,
                           df = NULL, p = NULL, conf_int = NULL, conf_lvl = NULL,
-                          group_mean = NULL, group_sd = NULL, group_name = NULL,
+                          sample_mean = NULL, sample_sd = NULL, group_name = NULL,
                           hypotheses = NULL, test_type = NULL, null_mean = NULL,
                           effect_size = NULL) {
 

@@ -16,7 +16,8 @@ Imports:
     vctrs,
     methods,
     rlang,
-    dplyr
+    dplyr,
+    tidyr
 Suggests: 
     testthat (>= 2.1.0),
     covr,
