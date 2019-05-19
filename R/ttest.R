@@ -8,16 +8,6 @@
 #' @param alternative an expression specifying the null hypothesis (quoted) or FALSE (default, indicates two sided)
 #' @param equal_variances should the test assume equality of variance? (default = FALSE)
 #' @param ... other arguments to be passed to t.test
-#' @importFrom rlang enquo
-#' @importFrom rlang expr
-#' @importFrom dplyr group_by
-#' @importFrom dplyr summarise
-#' @importFrom dplyr ungroup
-#' @importFrom dplyr %>%
-#' @importFrom dplyr pull
-#' @importFrom stats t.test
-#' @importFrom stats as.formula
-#' @importFrom stats sd
 #' @export
 ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
                             alternative = NULL, equal_variances = FALSE, ...) {
@@ -61,7 +51,7 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
     conf_int = strip(ttest$conf.int),
     conf_lvl = attr(ttest$conf.int, "conf.level"),
     group_mean = c(mean(x), mean(y)),
-    group_sd = c(sd(x), sd(y)),
+    group_sd = c(stats::sd(x), stats::sd(y)),
     group_name = grp_names,
     hypotheses = hyp$tidy,
     test_type = ifelse(equal_variances, "Student", "Welch")
