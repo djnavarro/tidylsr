@@ -121,13 +121,14 @@ ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
   out <- new_lsr_ttest(
     outcome = outcome,
     group = group,
+    id = id,
     t = strip(ttest$statistic),
     df = strip(ttest$parameter),
     p = strip(ttest$p.value),
     conf_int = strip(ttest$conf.int),
     conf_lvl = attr(ttest$conf.int, "conf.level"),
-    sample_mean = c(mean(x), mean(y)),
-    sample_sd = c(stats::sd(x), stats::sd(y)),
+    sample_mean = c(mean(x), mean(y), mean(x-y)),
+    sample_sd = c(stats::sd(x), stats::sd(y), stats::sd(x-y)),
     group_name = grp_names,
     #hypotheses = hyp$tidy,
     test_type = "Paired"
@@ -284,6 +285,127 @@ ttest_build_hyp <- function(alt, grp) {
 
 }
 
+#' @export
+print.lsr_ttest <- function(x, digits = 3, ...) {
+
+  # round to the default number of digits
+  round_def <- function(x) round(x, digits)
+
+  # print the name of the test
+  test_str <- switch(x$test_type,
+    "One sample" = "One sample t-test",
+    "Student" = "Student's two sample t-test",
+    "Welch" = "Welch's two sample t-test",
+    "Paired" = "Paired samples t-test"
+  )
+  cat("\n  ", test_str, "\n\n")
+
+  # print the names of the variables
+  cat("Variables: \n")
+  if(!is.null(x$outcome)) cat("   outcome variable: ", x$outcome, "\n")
+  if(!is.null(x$group)) cat("   group variable:   ", x$group, "\n")
+  if(!is.null(x$id)) cat("   id variable:      ", x$id, "\n")
+  cat("\n")
+
+  # print the table of descriptive statistics
+  descriptives <- rbind(x$sample_mean, x$sample_sd )
+  rownames(descriptives) <- c("   mean","   std dev.")
+  colnames(descriptives) <- switch(x$test_type,
+    "One sample" = x$outcome,
+    "Student" = x$group_name,
+    "Welch" = x$group_name,
+    "Paired" = c(x$group_name, "diff.")
+  )
+  txt_mat <- function(x, fmt = paste0("%.", digits, "f")) {
+    matrix(sprintf(fmt, x), nrow(x), ncol(x), dimnames = dimnames(x))
+  }
+  cat("Descriptive statistics: \n")
+  print(txt_mat(descriptives), quote = FALSE, right = TRUE)
+  cat("\n")
+
+  # # print the hypotheses being tested
+  # cat("Hypotheses: \n")
+  # if( x$method=="One sample t-test") { # one sample null...
+  #
+  #   # two-sided test
+  #   if( x$alternative == "two.sided" ) {
+  #     cat( "   null:        population mean equals", x$mu, "\n" )
+  #     cat( "   alternative: population mean not equal to", x$mu, "\n" )
+  #   }
+  #
+  #   # greater-than test
+  #   if( x$alternative == "greater" ) {
+  #     cat( "   null:        population mean less than or equal to", x$mu, "\n")
+  #     cat( "   alternative: population mean greater than", x$mu, "\n" )
+  #   }
+  #
+  #   # less-than test
+  #   if( x$alternative == "less" ) {
+  #     cat( "   null:        population mean greater than or equal to", x$mu, "\n" )
+  #     cat( "   alternative: population mean less than", x$mu, "\n" )
+  #   }
+  #
+  # } else {
+  #   if( x$method=="Paired samples t-test" ) { # paired sample null...
+  #
+  #     # two-sided test
+  #     if( x$alternative == "two.sided" ) {
+  #       cat( "   null:        population means equal for both measurements\n" )
+  #       cat( "   alternative: different population means for each measurement\n" )
+  #     }
+  #
+  #     # greater than test
+  #     if( x$alternative == "greater" ) {
+  #       cat( "   null:        population means are equal, or smaller for measurement",paste0("'",x$group.names[1],"'"),"\n" )
+  #       cat( "   alternative: population mean is larger for measurement",paste0("'",x$group.names[1],"'"),"\n" )
+  #     }
+  #
+  #     # less than test
+  #     if( x$alternative == "less" ) {
+  #       cat( "   null:        population means are equal, or smaller for measurement", paste0("'",x$group.names[2],"'"),"\n" )
+  #       cat( "   alternative: population mean is larger for measurement",paste0("'",x$group.names[2],"'"),"\n" )
+  #     }
+  #
+  #
+  #   } else { # two samples null...
+  #
+  #     # two-sided test
+  #     if( x$alternative == "two.sided" ) {
+  #       cat( "   null:        population means equal for both groups\n" )
+  #       cat( "   alternative: different population means in each group\n" )
+  #     }
+  #
+  #     # greater than test
+  #     if( x$alternative == "greater" ) {
+  #       cat( "   null:        population means are equal, or smaller for group",paste0("'",x$group.names[1],"'"),"\n" )
+  #       cat( "   alternative: population mean is larger for group",paste0("'",x$group.names[1],"'"),"\n" )
+  #     }
+  #
+  #     # less than test
+  #     if( x$alternative == "less" ) {
+  #       cat( "   null:        population means are equal, or smaller for group", paste0("'",x$group.names[2],"'"),"\n" )
+  #       cat( "   alternative: population mean is larger for group",paste0("'",x$group.names[2],"'"),"\n" )
+  #     }
+  #
+  #
+  #   }
+  # }
+  # cat("\n")
+
+  # print the test results
+  cat("Test results: \n")
+  cat("   t-statistic:        ", round_def(x$t), "\n")
+  cat("   degrees of freedom: ", round_def(x$df), "\n")
+  cat("   p-value:            ", ifelse(x$p<.001, "<.001", round_def(x$p)), "\n")
+  cat("\n")
+
+  # print the confidence interval
+  cat(round(x$conf_lvl * 100), "% confidence interval:", "\n", sep = "")
+  cat("   lower bound: ", round_def(x$conf_int[1]), "\n")
+  cat("   upper bound: ", round_def(x$conf_int[2]), "\n")
+  cat("\n")
+
+}
 
 
 
