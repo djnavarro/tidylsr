@@ -115,19 +115,24 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
                          id = NULL, test_greater = NULL, ...) {
 
-  # outcome, group, id as expressions
+  # if there is no formula, use the named arguments
   if(is.null(formula)) {
     outcome <- rlang::enexpr(outcome)
     group <- rlang::enexpr(group)
     id <- rlang::enexpr(id)
+
+  # but use the formula version by default
   } else {
-    outcome <- formula[[2]]
-    rhs <- formula[[3]]
-    rhs_vars <- c(rhs[[2]], rhs[[3]])
-    id_ind <- grep("^\\(.*\\)$", rhs_vars)
-    group <- rhs_vars[[3-id_ind]]
-    id <- rhs_vars[[id_ind]][2] # element 1 is "(", element 2 is var name
+    tmp <- unpack_paired_formula(formula)
+    outcome <- tmp$outcome
+    group <- tmp$group
+    id <- tmp$id
   }
+
+  # create a wide form version of the data
+  wide_data <- data %>%
+    dplyr::select(!!id, !!group, !!outcome) %>%
+    tidyr::spread(key = !!group, value = !!outcome)
 
   # outcome and group can just be strings
   outcome <- as.character(outcome)
@@ -136,11 +141,6 @@ ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
 
   # extract group names
   grp_names <- get_group_names(data[[group]])
-
-  # create a wide form version of the data
-  wide_data <- data %>%
-    dplyr::select(!!id, !!group, !!outcome) %>%
-    tidyr::spread(key = !!group, value = !!outcome)
 
   # extract the paired samples
   x <- wide_data[[grp_names[1]]]

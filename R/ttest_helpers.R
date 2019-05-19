@@ -1,4 +1,19 @@
 
+# convert the paired model formula into a list of names
+unpack_paired_formula <- function(fml) {
+  out <- fml[[2]]
+  rhs <- fml[[3]]
+  var <- c(rhs[[2]], rhs[[3]])
+  ind <- grep("^\\(.*\\)$", var)
+  grp <- var[[3 - ind]]
+  ids <- var[[ind]][[2]] # [[1]] is "(", [[2]] is id
+  return(list(
+    outcome = out,
+    group = grp,
+    id = ids
+  ))
+}
+
 # specify the test direction
 get_direction_two <- function(grt, grp_names) {
   if(is.null(grt)) return("two.sided")
