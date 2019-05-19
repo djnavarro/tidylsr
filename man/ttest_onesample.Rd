@@ -14,7 +14,7 @@ ttest_onesample(data, outcome = NULL, null_mean = NULL,
 
 \item{null_mean}{the fixed mean to test against (numeric)}
 
-\item{test_greater}{alternative hypothesis that the mean exceeds \code{null_mean} (TRUE), is less than \code{null_mean} (FALSE) or two-sided (NULL, the default)}
+\item{test_greater}{alternative hypothesis that the mean exceeds 'null_mean' (TRUE), is less than 'null_mean' (FALSE) or two-sided (NULL, the default)}
 
 \item{...}{other arguments to be passed to t.test}
 }
