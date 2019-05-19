@@ -61,6 +61,72 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 }
 
 
+
+#' One sample t-test
+#'
+#' @param data a data frame or tibble
+#' @param outcome the outcome variable (quoted)
+#' @param null_mean the fixed mean to test against (numeric)
+#' @param alternative character specifying "two.sided" (the default), "greater", or "less"
+#' @param ... other arguments to be passed to t.test
+#' @export
+ttest_onesample <- function(data, outcome = NULL, null_mean = NULL,
+                            alternative = "two.sided", ...) {
+
+
+  # extract outcome variable as character string
+  outcome <- as.character(rlang::enexpr(outcome))
+
+  # check the hypothesis
+  if(alternative == "two.sided") {
+    hyp <- c(
+      null = paste0("population mean of `", outcome, "` equals ", null_mean),
+      alternative = paste0("population mean of `", outcome, "` differs from ", null_mean)
+    )
+  } else if(alternative == "greater") {
+    hyp <- c(
+      null = paste0("population mean of `", outcome, "` is less than or equal to ", null_mean),
+      alternative = paste0("population mean of `", outcome, "` is greater than ", null_mean)
+    )
+  } else if(alternative == "less") {
+    hyp <- c(
+      null = paste0("population mean of `", outcome, "` is greater than or equal to ", null_mean),
+      alternative = paste0("population mean of `", outcome, "` is less than ", null_mean)
+    )
+  } else {
+    stop('`alternative` must be "two.sided", "greater" or "less"', call. = FALSE)
+  }
+
+
+  # extract the sample
+  x <- data[[outcome]]
+
+  # run the t-test
+  ttest <- stats::t.test(x=x, mu=null_mean, alternative = alternative, ...)
+
+
+  # format the output
+  out <- new_lsr_ttest(
+    outcome = outcome,
+    null_mean = null_mean,
+    t = strip(ttest$statistic),
+    df = strip(ttest$parameter),
+    p = strip(ttest$p.value),
+    conf_int = strip(ttest$conf.int),
+    conf_lvl = attr(ttest$conf.int, "conf.level"),
+    group_mean = mean(x),
+    group_sd = stats::sd(x),
+    hypotheses = hyp,
+    test_type = "One sample"
+  )
+
+  return(out)
+}
+
+
+
+
+
 # Constructor function for the lsr_ttest class. At the moment
 # it is just ridiculous duplication but I suspect I'll want to
 # use it to check inputs in some cases?
