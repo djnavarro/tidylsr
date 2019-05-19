@@ -5,7 +5,7 @@
 \title{Paired samples t-test}
 \usage{
 ttest_paired(data, formula = NULL, outcome = NULL, group = NULL,
-  id = NULL, alternative = NULL, ...)
+  id = NULL, big_alternative = NULL, ...)
 }
 \arguments{
 \item{data}{a data frame or tibble}
@@ -18,7 +18,7 @@ ttest_paired(data, formula = NULL, outcome = NULL, group = NULL,
 
 \item{id}{the id variable (qouoted)}
 
-\item{alternative}{an expression specifying the null hypothesis (quoted) or FALSE (default, indicates two sided)}
+\item{big_alternative}{value of specifying which group is larger under the alternative, or NULL (default) to specify a two-sided test}
 
 \item{...}{other arguments to be passed to t.test}
 }

@@ -5,7 +5,7 @@
 \title{Two samples t-test}
 \usage{
 ttest_twosample(data, formula = NULL, outcome = NULL, group = NULL,
-  alternative = NULL, equal_variances = FALSE, ...)
+  big_alternative = NULL, equal_variances = FALSE, ...)
 }
 \arguments{
 \item{data}{a data frame or tibble}
@@ -16,7 +16,7 @@ ttest_twosample(data, formula = NULL, outcome = NULL, group = NULL,
 
 \item{group}{the grouping variable (quoted)}
 
-\item{alternative}{an expression specifying the null hypothesis (quoted) or FALSE (default, indicates two sided)}
+\item{big_alternative}{value of specifying which group is larger under the alternative, or NULL (default) to specify a two-sided test}
 
 \item{equal_variances}{should the test assume equality of variance? (default = FALSE)}
 

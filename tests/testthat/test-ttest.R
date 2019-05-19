@@ -17,8 +17,8 @@ test_that("all three versions of ttest_twosample give the same answer", {
 
 test_that("one and two-sided p-values add appropriately", {
 
-  tst1 <- ttest_twosample(tbl, out ~ grp, alternative = "grp A" < "grp B")
-  tst2 <- ttest_twosample(tbl, out ~ grp, alternative = "grp B" < "grp A")
+  tst1 <- ttest_twosample(tbl, out ~ grp, big_alternative = "grp A")
+  tst2 <- ttest_twosample(tbl, out ~ grp, big_alternative = "grp B")
   tst3 <- ttest_twosample(tbl, out ~ grp)
 
 

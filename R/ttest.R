@@ -5,15 +5,14 @@
 #' @param formula the model formula (i.e., outcome ~ group)
 #' @param outcome the outcome variable (quoted)
 #' @param group the grouping variable (quoted)
-#' @param alternative an expression specifying the null hypothesis (quoted) or FALSE (default, indicates two sided)
+#' @param big_alternative value of specifying which group is larger under the alternative, or NULL (default) to specify a two-sided test
 #' @param equal_variances should the test assume equality of variance? (default = FALSE)
 #' @param ... other arguments to be passed to t.test
 #' @export
 ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
-                            alternative = NULL, equal_variances = FALSE, ...) {
+                            big_alternative = NULL, equal_variances = FALSE, ...) {
 
-  # alternative, outcome and group as expressions
-  alternative <- rlang::enexpr(alternative)
+  # outcome and group as expressions
   if(is.null(formula)) {
     outcome <- rlang::enexpr(outcome)
     group <- rlang::enexpr(group)
@@ -22,24 +21,21 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
     group <- formula[[3]]
   }
 
-  # outcome and group can just be strings
+  # outcome and group as strings
   outcome <- as.character(outcome)
   group <- as.character(group)
 
-  # extract the group names and the two samples
-  grp_names <- unique(data[[group]])
+  # extract group names and samples
+  grp_names <- get_group_names(data[[group]])
   x <- data[[outcome]][data[[group]] == grp_names[1]]
   y <- data[[outcome]][data[[group]] == grp_names[2]]
 
-  # specify hypothesis
-  hyp <- ttest_build_hyp(alternative, grp_names)
+  # specify the alternative hypothesis
+  alt <- get_direction(big_alternative, grp_names)
 
   # run the t-test
-  ttest <- stats::t.test(x=x, y=y, alternative = hyp$base,
+  ttest <- stats::t.test(x=x, y=y, alternative = alt,
                          var.equal = equal_variances, ...)
-
-  # don't store group names as a factor
-  if(is.factor(grp_names)) grp_names <- as.character(grp_names)
 
   # format the output
   out <- new_lsr_ttest(
@@ -53,13 +49,28 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
     sample_mean = c(mean(x), mean(y)),
     sample_sd = c(stats::sd(x), stats::sd(y)),
     group_name = grp_names,
-    hypotheses = hyp$tidy,
+    alternative = alt,
     test_type = ifelse(equal_variances, "Student", "Welch")
   )
 
   return(out)
 }
 
+# specify the test direction
+get_direction <- function(big_alt, grp_names) {
+  if(is.null(big_alt)) return("two.sided")
+  if(big_alt == grp_names[1]) return("greater")
+  if(big_alt == grp_names[2]) return("less")
+  stop("`big_alternative` must be NULL or a value indicating a group",
+       call. = FALSE)
+}
+
+# extract group names (and don't return a factor)
+get_group_names <- function(grp) {
+  grp_names <- unique(grp)
+  if(is.factor(grp_names)) grp_names <- as.character(grp_names)
+  return(grp_names)
+}
 
 
 #' Paired samples t-test
@@ -69,15 +80,14 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
 #' @param outcome the outcome variable (quoted)
 #' @param group the grouping variable (quoted)
 #' @param id the id variable (qouoted)
-#' @param alternative an expression specifying the null hypothesis (quoted) or FALSE (default, indicates two sided)
+#' @param big_alternative value of specifying which group is larger under the alternative, or NULL (default) to specify a two-sided test
 #' @param ... other arguments to be passed to t.test
 #' @importFrom dplyr %>%
 #' @export
 ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
-                         id = NULL, alternative = NULL,  ...) {
+                         id = NULL, big_alternative = NULL,  ...) {
 
-  # alternative, outcome, group, id as expressions
-  alternative <- rlang::enexpr(alternative)
+  # outcome, group, id as expressions
   if(is.null(formula)) {
     outcome <- rlang::enexpr(outcome)
     group <- rlang::enexpr(group)
@@ -96,8 +106,8 @@ ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
   group <- as.character(group)
   id <- as.character(id)
 
-  # extract the group names and the two samples
-  grp_names <- unique(data[[group]])
+  # extract group names
+  grp_names <- get_group_names(data[[group]])
 
   # create a wide form version of the data
   wide_data <- data %>%
@@ -108,14 +118,11 @@ ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
   x <- wide_data[[grp_names[1]]]
   y <- wide_data[[grp_names[2]]]
 
-  # specify hypothesis
-  #hyp <- ttest_build_hyp(alternative, grp_names)
+  # specify the alternative hypothesis
+  alt <- get_direction(big_alternative, grp_names)
 
   # run the t-test
-  ttest <- stats::t.test(x=x, y=y, alternative = "two.sided", paired = TRUE, ...)
-
-  # don't store group names as a factor
-  if(is.factor(grp_names)) grp_names <- as.character(grp_names)
+  ttest <- stats::t.test(x=x, y=y, alternative = alt, paired = TRUE, ...)
 
   # format the output
   out <- new_lsr_ttest(
@@ -130,7 +137,7 @@ ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
     sample_mean = c(mean(x), mean(y), mean(x-y)),
     sample_sd = c(stats::sd(x), stats::sd(y), stats::sd(x-y)),
     group_name = grp_names,
-    #hypotheses = hyp$tidy,
+    alternative = alt,
     test_type = "Paired"
   )
 
@@ -149,37 +156,14 @@ ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
 ttest_onesample <- function(data, outcome = NULL, null_mean = NULL,
                             alternative = "two.sided", ...) {
 
-
   # extract outcome variable as character string
   outcome <- as.character(rlang::enexpr(outcome))
-
-  # check the hypothesis
-  if(alternative == "two.sided") {
-    hyp <- c(
-      null = paste0("population mean of `", outcome, "` equals ", null_mean),
-      alternative = paste0("population mean of `", outcome, "` differs from ", null_mean)
-    )
-  } else if(alternative == "greater") {
-    hyp <- c(
-      null = paste0("population mean of `", outcome, "` is less than or equal to ", null_mean),
-      alternative = paste0("population mean of `", outcome, "` is greater than ", null_mean)
-    )
-  } else if(alternative == "less") {
-    hyp <- c(
-      null = paste0("population mean of `", outcome, "` is greater than or equal to ", null_mean),
-      alternative = paste0("population mean of `", outcome, "` is less than ", null_mean)
-    )
-  } else {
-    stop('`alternative` must be "two.sided", "greater" or "less"', call. = FALSE)
-  }
-
 
   # extract the sample
   x <- data[[outcome]]
 
   # run the t-test
   ttest <- stats::t.test(x=x, mu=null_mean, alternative = alternative, ...)
-
 
   # format the output
   out <- new_lsr_ttest(
@@ -192,14 +176,12 @@ ttest_onesample <- function(data, outcome = NULL, null_mean = NULL,
     conf_lvl = attr(ttest$conf.int, "conf.level"),
     sample_mean = mean(x),
     sample_sd = stats::sd(x),
-    hypotheses = hyp,
+    alternative = alternative,
     test_type = "One sample"
   )
 
   return(out)
 }
-
-
 
 
 
@@ -209,7 +191,7 @@ ttest_onesample <- function(data, outcome = NULL, null_mean = NULL,
 new_lsr_ttest <- function(outcome = NULL, group = NULL, id = NULL, t = NULL,
                           df = NULL, p = NULL, conf_int = NULL, conf_lvl = NULL,
                           sample_mean = NULL, sample_sd = NULL, group_name = NULL,
-                          hypotheses = NULL, test_type = NULL, null_mean = NULL,
+                          alternative = NULL, test_type = NULL, null_mean = NULL,
                           effect_size = NULL) {
 
   structure(
@@ -225,7 +207,7 @@ new_lsr_ttest <- function(outcome = NULL, group = NULL, id = NULL, t = NULL,
       sample_mean = sample_mean,
       sample_sd = sample_sd,
       group_name = group_name,
-      hypotheses = hypotheses,
+      alternative = alternative,
       test_type = test_type,
       null_mean = null_mean,
       effect_size = effect_size
@@ -235,55 +217,6 @@ new_lsr_ttest <- function(outcome = NULL, group = NULL, id = NULL, t = NULL,
 
 }
 
-
-# construct a tidy version of the null and alternative hypothesis, as well as
-# the character string used by t.test in base R.
-ttest_build_hyp <- function(alt, grp) {
-
-  alt <- rlang::expr(!!alt)
-
-  # two sided test
-  if(is.null(alt)) {
-    return(list(
-      tidy <- c(null = "equal means", alternative = "different means"),
-      base <- "two.sided"
-    ))
-  }
-
-  # one sided test should be an expression of length 3
-  if(length(alt) != 3) { stop("invalid expression") }
-
-  # parse input
-  dir <- as.character(alt[[1]])
-  if(dir == ">") {
-    x <- as.character(alt[[2]])
-    y <- as.character(alt[[3]])
-  } else if(dir == "<") {
-    x <- as.character(alt[[2]])
-    y <- as.character(alt[[3]])
-  } else {
-    stop("one-sided `alternative` must specify directon using `<` or `>`")
-  }
-
-  # string describing the tidy hypothesis
-  tidy = c(null = paste0(x, " <= ", y),
-           alternative = paste0(x, " > ", y))
-
-  # if user has specified groups in the expected order
-  # (x maps to first, y maps to second) return "greater"
-  if(x == grp[1] & y == grp[2]) {
-    return(list(tidy = tidy, base = "greater"))
-  }
-
-  # if user spec is reverse, return "less"
-  if(x == grp[2] & y == grp[1]) {
-    return(list(tidy = tidy, base = "less"))
-  }
-
-  # it it does not match, throw error
-  stop("group names in `alternative` must match `data`")
-
-}
 
 #' @export
 print.lsr_ttest <- function(x, digits = 3, ...) {
@@ -302,9 +235,9 @@ print.lsr_ttest <- function(x, digits = 3, ...) {
 
   # print the names of the variables
   cat("Variables: \n")
-  if(!is.null(x$outcome)) cat("   outcome variable: ", x$outcome, "\n")
-  if(!is.null(x$group)) cat("   group variable:   ", x$group, "\n")
-  if(!is.null(x$id)) cat("   id variable:      ", x$id, "\n")
+  if(!is.null(x$outcome)) cat("   outcome: ", x$outcome, "\n")
+  if(!is.null(x$group)) cat("   group:   ", x$group, "\n")
+  if(!is.null(x$id)) cat("   id:      ", x$id, "\n")
   cat("\n")
 
   # print the table of descriptive statistics
@@ -319,78 +252,16 @@ print.lsr_ttest <- function(x, digits = 3, ...) {
   txt_mat <- function(x, fmt = paste0("%.", digits, "f")) {
     matrix(sprintf(fmt, x), nrow(x), ncol(x), dimnames = dimnames(x))
   }
-  cat("Descriptive statistics: \n")
+  cat("Descriptives: \n")
   print(txt_mat(descriptives), quote = FALSE, right = TRUE)
   cat("\n")
 
-  # # print the hypotheses being tested
-  # cat("Hypotheses: \n")
-  # if( x$method=="One sample t-test") { # one sample null...
-  #
-  #   # two-sided test
-  #   if( x$alternative == "two.sided" ) {
-  #     cat( "   null:        population mean equals", x$mu, "\n" )
-  #     cat( "   alternative: population mean not equal to", x$mu, "\n" )
-  #   }
-  #
-  #   # greater-than test
-  #   if( x$alternative == "greater" ) {
-  #     cat( "   null:        population mean less than or equal to", x$mu, "\n")
-  #     cat( "   alternative: population mean greater than", x$mu, "\n" )
-  #   }
-  #
-  #   # less-than test
-  #   if( x$alternative == "less" ) {
-  #     cat( "   null:        population mean greater than or equal to", x$mu, "\n" )
-  #     cat( "   alternative: population mean less than", x$mu, "\n" )
-  #   }
-  #
-  # } else {
-  #   if( x$method=="Paired samples t-test" ) { # paired sample null...
-  #
-  #     # two-sided test
-  #     if( x$alternative == "two.sided" ) {
-  #       cat( "   null:        population means equal for both measurements\n" )
-  #       cat( "   alternative: different population means for each measurement\n" )
-  #     }
-  #
-  #     # greater than test
-  #     if( x$alternative == "greater" ) {
-  #       cat( "   null:        population means are equal, or smaller for measurement",paste0("'",x$group.names[1],"'"),"\n" )
-  #       cat( "   alternative: population mean is larger for measurement",paste0("'",x$group.names[1],"'"),"\n" )
-  #     }
-  #
-  #     # less than test
-  #     if( x$alternative == "less" ) {
-  #       cat( "   null:        population means are equal, or smaller for measurement", paste0("'",x$group.names[2],"'"),"\n" )
-  #       cat( "   alternative: population mean is larger for measurement",paste0("'",x$group.names[2],"'"),"\n" )
-  #     }
-  #
-  #
-  #   } else { # two samples null...
-  #
-  #     # two-sided test
-  #     if( x$alternative == "two.sided" ) {
-  #       cat( "   null:        population means equal for both groups\n" )
-  #       cat( "   alternative: different population means in each group\n" )
-  #     }
-  #
-  #     # greater than test
-  #     if( x$alternative == "greater" ) {
-  #       cat( "   null:        population means are equal, or smaller for group",paste0("'",x$group.names[1],"'"),"\n" )
-  #       cat( "   alternative: population mean is larger for group",paste0("'",x$group.names[1],"'"),"\n" )
-  #     }
-  #
-  #     # less than test
-  #     if( x$alternative == "less" ) {
-  #       cat( "   null:        population means are equal, or smaller for group", paste0("'",x$group.names[2],"'"),"\n" )
-  #       cat( "   alternative: population mean is larger for group",paste0("'",x$group.names[2],"'"),"\n" )
-  #     }
-  #
-  #
-  #   }
-  # }
-  # cat("\n")
+  # print the hypotheses being tested
+  hyp <- get_verbose_hypotheses(x)
+  cat("Hypotheses: \n")
+  cat("    null:        ", hyp["null"], "\n")
+  cat("    alternative: ", hyp["altr"], "\n")
+  cat("\n")
 
   # print the test results
   cat("Test results: \n")
@@ -404,6 +275,67 @@ print.lsr_ttest <- function(x, digits = 3, ...) {
   cat("   lower bound: ", round_def(x$conf_int[1]), "\n")
   cat("   upper bound: ", round_def(x$conf_int[2]), "\n")
   cat("\n")
+
+}
+
+
+get_verbose_hypotheses <- function(x) {
+
+  tt <- switch(
+    x$test_type,
+    "One sample" = "one",
+    "Student" = "two",
+    "Welch" = "two",
+    "Paired" = "two"
+  )
+
+  # --- one sample test hypotheses ---
+
+  if(tt == "one" & x$alternative == "two.sided") {
+    return(c(
+      null = paste0("population mean equals", x$null_mean),
+      altr = paste0("population mean not equal to", x$null_mean)
+    ))
+  }
+
+  if(tt == "one" & x$alternative == "greater") {
+    return(c(
+      null = paste0("population mean less than or equal to", x$null_mean),
+      altr = paste0("population mean greater than", x$null_mean)
+    ))
+  }
+
+  if(tt == "one" & x$alternative == "less") {
+    return(c(
+      null = paste0("population mean greater than or equal to", x$null_mean),
+      altr = paste0("population mean less than", x$null_mean)
+    ))
+  }
+
+  # --- all other test hypotheses ---
+
+  if(tt == "two" & x$alternative == "two.sided") {
+    return(c(
+      null = paste0("population mean are equal"),
+      altr = paste0("population means are different")
+    ))
+  }
+
+  if(tt == "two" & x$alternative == "greater") {
+    return(c(
+      null = paste0("population mean is equal, or smaller for '", x$group_name[1], "'"),
+      altr = paste0("population mean is greater for '", x$group_name[1])
+    ))
+  }
+
+  if(tt == "two" & x$alternative == "less") {
+    return(c(
+      null = paste0("population mean is equal, or greater for '", x$group_name[1], "'"),
+      altr = paste0("population mean is less for '", x$group_name[1])
+    ))
+  }
+
+  stop("This should not happen", call. = FALSE)
 
 }
 
