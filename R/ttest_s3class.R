@@ -64,5 +64,7 @@ print.lsr_ttest <- function(x, digits = 3, ...) {
   cat("   upper bound: ", round_def(x$test$ci_upper[2]), "\n")
   cat("\n")
 
+  return(invisible(x))
+
 }
 
