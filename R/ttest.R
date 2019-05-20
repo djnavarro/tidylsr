@@ -22,19 +22,41 @@ ttest_onesample <- function(data, outcome = NULL, null_mean = NULL,
   # run the t-test
   ttest <- stats::t.test(x=x, mu=null_mean, alternative = alt, ...)
 
-  # format the output
-  out <- new_lsr_ttest(
+
+  # construct tibble with variable names
+  variables <- tibble::tibble(
     outcome = outcome,
-    null_mean = null_mean,
+    group = NA_character_,
+    id = NA_character_,
+    sample1 = NA_character_,
+    sample2 = NA_character_,
+    null_mean = null_mean
+  )
+
+  # construct tibble with test/confidence results
+  test <- tibble::tibble(
+    type = "one_sample",
+    hypotheses = alt,
     t = strip(ttest$statistic),
     df = strip(ttest$parameter),
     p = strip(ttest$p.value),
-    conf_int = strip(ttest$conf.int),
-    conf_lvl = attr(ttest$conf.int, "conf.level"),
-    sample_mean = mean(x),
-    sample_sd = stats::sd(x),
-    alternative = alt,
-    test_type = "One sample"
+    ci_lower = strip(ttest$conf.int)[1],
+    ci_upper = strip(ttest$conf.int)[2],
+    ci_level = attr(ttest$conf.int, "conf.level")
+  )
+
+  # construct tibble with descriptive statistics
+  descriptives <- tibble::tibble(
+    sample = outcome,
+    mean = mean(x),
+    sd = stats::sd(x)
+  )
+
+  # format the output
+  out <- new_lsr_ttest(
+    variables = variables,
+    test = test,
+    descriptives = descriptives
   )
 
   return(out)
@@ -80,20 +102,41 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
   ttest <- stats::t.test(x=x, y=y, alternative = alt,
                          var.equal = equal_variances, ...)
 
-  # format the output
-  out <- new_lsr_ttest(
+
+  # construct tibble with variable names
+  variables <- tibble::tibble(
     outcome = outcome,
     group = group,
+    id = NA_character_,
+    sample1 = grp_names[1],
+    sample2 = grp_names[2],
+    null_mean = NA_real_
+  )
+
+  # construct tibble with test/confidence results
+  test <- tibble::tibble(
+    type = ifelse(equal_variances, "student", "welch"),
+    hypotheses = alt,
     t = strip(ttest$statistic),
     df = strip(ttest$parameter),
     p = strip(ttest$p.value),
-    conf_int = strip(ttest$conf.int),
-    conf_lvl = attr(ttest$conf.int, "conf.level"),
-    sample_mean = c(mean(x), mean(y)),
-    sample_sd = c(stats::sd(x), stats::sd(y)),
-    group_name = grp_names,
-    alternative = alt,
-    test_type = ifelse(equal_variances, "Student", "Welch")
+    ci_lower = strip(ttest$conf.int)[1],
+    ci_upper = strip(ttest$conf.int)[2],
+    ci_level = attr(ttest$conf.int, "conf.level")
+  )
+
+  # construct tibble with descriptive statistics
+  descriptives <- tibble::tibble(
+    sample = grp_names,
+    mean = c(mean(x), mean(y)),
+    sd = c(stats::sd(x), stats::sd(y))
+  )
+
+  # format the output
+  out <- new_lsr_ttest(
+    variables = variables,
+    test = test,
+    descriptives = descriptives
   )
 
   return(out)
@@ -152,21 +195,40 @@ ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
   # run the t-test
   ttest <- stats::t.test(x=x, y=y, alternative = alt, paired = TRUE, ...)
 
-  # format the output
-  out <- new_lsr_ttest(
+  # construct tibble with variable names
+  variables <- tibble::tibble(
     outcome = outcome,
     group = group,
     id = id,
+    sample1 = grp_names[1],
+    sample2 = grp_names[2],
+    null_mean = NA_real_
+  )
+
+  # construct tibble with test/confidence results
+  test <- tibble::tibble(
+    type = "paired",
+    hypotheses = alt,
     t = strip(ttest$statistic),
     df = strip(ttest$parameter),
     p = strip(ttest$p.value),
-    conf_int = strip(ttest$conf.int),
-    conf_lvl = attr(ttest$conf.int, "conf.level"),
-    sample_mean = c(mean(x), mean(y), mean(x-y)),
-    sample_sd = c(stats::sd(x), stats::sd(y), stats::sd(x-y)),
-    group_name = grp_names,
-    alternative = alt,
-    test_type = "Paired"
+    ci_lower = strip(ttest$conf.int)[1],
+    ci_upper = strip(ttest$conf.int)[2],
+    ci_level = attr(ttest$conf.int, "conf.level")
+  )
+
+  # construct tibble with descriptive statistics
+  descriptives <- tibble::tibble(
+    sample = c(grp_names, "diff."),
+    mean = c(mean(x), mean(y), mean(x-y)),
+    sd = c(stats::sd(x), stats::sd(y), stats::sd(x-y))
+  )
+
+  # format the output
+  out <- new_lsr_ttest(
+    variables = variables,
+    test = test,
+    descriptives = descriptives
   )
 
   return(out)

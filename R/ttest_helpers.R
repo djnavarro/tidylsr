@@ -43,56 +43,60 @@ get_group_names <- function(grp) {
 get_verbose_hypotheses <- function(x) {
 
   tt <- switch(
-    x$test_type,
-    "One sample" = "one",
-    "Student" = "two",
-    "Welch" = "two",
-    "Paired" = "two"
+    x$test$type,
+    "one_sample" = "one",
+    "student" = "two",
+    "welch" = "two",
+    "paired" = "two"
   )
+
+  sm <- x$variables$sample1
+  nm <- x$variables$null_mean
+  xa <- x$test$hypotheses
 
   # --- one sample test hypotheses ---
 
-  if(tt == "one" & x$alternative == "two.sided") {
+  if(tt == "one" & xa == "two.sided") {
     return(c(
-      null = paste0("population mean equals", x$null_mean),
-      altr = paste0("population mean not equal to", x$null_mean)
+      null = paste0("population mean equals", nm),
+      altr = paste0("population mean not equal to", nm)
     ))
   }
 
-  if(tt == "one" & x$alternative == "greater") {
+  if(tt == "one" & xa == "greater") {
     return(c(
-      null = paste0("population mean less than or equal to", x$null_mean),
-      altr = paste0("population mean greater than", x$null_mean)
+      null = paste0("population mean less than or equal to", nm),
+      altr = paste0("population mean greater than", nm)
     ))
   }
 
-  if(tt == "one" & x$alternative == "less") {
+  if(tt == "one" & xa == "less") {
     return(c(
-      null = paste0("population mean greater than or equal to", x$null_mean),
-      altr = paste0("population mean less than", x$null_mean)
+      null = paste0("population mean greater than or equal to", nm),
+      altr = paste0("population mean less than", nm)
     ))
   }
 
   # --- all other test hypotheses ---
 
-  if(tt == "two" & x$alternative == "two.sided") {
+  if(tt == "two" & xa == "two.sided") {
     return(c(
       null = paste0("population mean are equal"),
       altr = paste0("population means are different")
     ))
   }
 
-  if(tt == "two" & x$alternative == "greater") {
+  if(tt == "two" & xa == "greater") {
     return(c(
-      null = paste0("population mean is equal, or smaller for '", x$group_name[1], "'"),
-      altr = paste0("population mean is greater for '", x$group_name[1])
+      null = paste0("population mean is equal, or smaller for '", sm, "'"),
+      altr = paste0("population mean is greater for '", sm)
     ))
   }
 
-  if(tt == "two" & x$alternative == "less") {
+  if(tt == "two" & xa == "less") {
     return(c(
-      null = paste0("population mean is equal, or greater for '", x$group_name[1], "'"),
-      altr = paste0("population mean is less for '", x$group_name[1])
+      null = paste0("population mean is equal, or greater for '", sm, "'"),
+      altr = paste0("population mean is less for '", sm)
     ))
   }
 

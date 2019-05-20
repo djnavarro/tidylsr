@@ -21,9 +21,9 @@ test_that("one and two-sided p-values add appropriately", {
   tst2 <- ttest_twosample(tbl, out ~ grp, test_greater = "grp B")
   tst3 <- ttest_twosample(tbl, out ~ grp)
 
-  p1 <- tst1$p
-  p2 <- tst2$p
-  p3 <- tst3$p
+  p1 <- tst1$test$p
+  p2 <- tst2$test$p
+  p3 <- tst3$test$p
 
   expect_equal(p1 + p2, 1)
   expect_equal(min(p1,p2), p3/2)
