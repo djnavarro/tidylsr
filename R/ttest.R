@@ -13,6 +13,9 @@ ttest_onesample <- function(data, outcome = NULL, null_mean = NULL,
   # extract outcome variable as character string
   outcome <- as.character(rlang::enexpr(outcome))
 
+  # handle missing data
+  data <- ttest_handle_missing(data, outcome)
+
   # extract the sample
   x <- data[[outcome]]
 
@@ -89,6 +92,9 @@ ttest_twosample <- function(data, formula = NULL, outcome = NULL, group = NULL,
   # outcome and group as strings
   outcome <- as.character(outcome)
   group <- as.character(group)
+
+  # handle missing data
+  data <- ttest_handle_missing(data, c(outcome, group))
 
   # extract group names and samples
   grp_names <- get_group_names(data[[group]])
@@ -172,6 +178,7 @@ ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
     id <- tmp$id
   }
 
+
   # create a wide form version of the data
   wide_data <- data %>%
     dplyr::select(!!id, !!group, !!outcome) %>%
@@ -184,6 +191,9 @@ ttest_paired <- function(data, formula = NULL, outcome = NULL, group = NULL,
 
   # extract group names
   grp_names <- get_group_names(data[[group]])
+
+  # handle missing data
+  wide_data <- ttest_handle_missing(wide_data, grp_names)
 
   # extract the paired samples
   x <- wide_data[[grp_names[1]]]

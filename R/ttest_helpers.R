@@ -1,3 +1,22 @@
+# remove missing values and message the user
+ttest_handle_missing <- function(data, vars, quietly = FALSE) {
+
+  # only consider the relevant variables
+  df <- data[,vars, drop=FALSE]
+
+  # note that is.na removes NaN as well as NA (which is good!)
+  missing <- lapply(df, function(x){is.na(x)})
+  missing <- Reduce(`|`, missing)
+
+  # throw warning if there are missing data
+  if(!quietly & any(missing)) {
+    warning(sum(missing), " observations removed due to missingness")
+  }
+
+  # return
+  return(df[!missing,,drop=FALSE])
+}
+
 
 # convert the paired model formula into a list of names
 unpack_paired_formula <- function(fml) {
