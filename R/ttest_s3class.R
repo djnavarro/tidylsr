@@ -34,9 +34,9 @@ print.lsr_ttest <- function(x, digits = 3, ...) {
 
   # print the names of the variables
   cat("Variables: \n")
-  if(!is.null(x$variables$outcome)) cat("   outcome: ", x$variables$outcome, "\n")
-  if(!is.null(x$variables$group)) cat("   group:   ", x$variables$group, "\n")
-  if(!is.null(x$variables$id)) cat("   id:      ", x$variables$id, "\n")
+  if(!is.na(x$variables$outcome)) cat("   outcome: ", x$variables$outcome, "\n")
+  if(!is.na(x$variables$group)) cat("   group:   ", x$variables$group, "\n")
+  if(!is.na(x$variables$id)) cat("   id:      ", x$variables$id, "\n")
   cat("\n")
 
   # print the table of descriptive statistics

@@ -17,7 +17,7 @@ test_that("print method for lsr_ttest returns the original object", {
 })
 
 
-test_that("output from a t-test has 27-29 lines", {
+test_that("output from a t-test has the correct number of lines", {
 
   tbl <- new_tbl()
   tt1 <- ttest_twosample(tbl, out ~ grp)
@@ -28,8 +28,8 @@ test_that("output from a t-test has 27-29 lines", {
   tp2 <- capture.output(print(tt2))
   tp3 <- capture.output(print(tt3))
 
-  expect_length(tp1, 28)
+  expect_length(tp1, 27)
   expect_length(tp2, 29)
-  expect_length(tp3, 27)
+  expect_length(tp3, 25)
 })
 
