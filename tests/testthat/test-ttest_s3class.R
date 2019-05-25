@@ -3,7 +3,7 @@
 new_tbl <- function(n = 20) {
   tibble(
     out = rnorm(n = 2*n) + rep(c(0,1), n),
-    grp = rep(c("time 1", "time 2"), n),
+    grp = rep(c("veryverylongtime 1", "veryverylongtime 2"), n),
     id = as.character(paste0("subj", gl(n, 2)))
   )
 }
@@ -28,8 +28,8 @@ test_that("output from a t-test has the correct number of lines", {
   tp2 <- capture.output(print(tt2))
   tp3 <- capture.output(print(tt3))
 
-  expect_length(tp1, 27)
-  expect_length(tp2, 29)
-  expect_length(tp3, 25)
+  expect_length(tp1, 25)
+  expect_length(tp2, 27)
+  expect_length(tp3, 23)
 })
 
