@@ -30,18 +30,27 @@ print.lsr_ttest <- function(x, digits = 3, ...) {
                      "welch" = "Welch's two sample t-test",
                      "paired" = "Paired samples t-test"
   )
-  cat("\n  ", test_str, "\n\n")
+  cat("\n   ", test_str, "\n\n")
 
   # print the names of the variables
   cat("Variables: \n")
-  if(!is.na(x$variables$outcome)) cat("   outcome: ", x$variables$outcome, "\n")
-  if(!is.na(x$variables$group)) cat("   group:   ", x$variables$group, "\n")
-  if(!is.na(x$variables$id)) cat("   id:      ", x$variables$id, "\n")
+  if(!is.na(x$variables$outcome)) cat("    outcome: ", x$variables$outcome, "\n")
+  if(!is.na(x$variables$group)) cat("    group:   ", x$variables$group, "\n")
+  if(!is.na(x$variables$id)) cat("    id:      ", x$variables$id, "\n")
   cat("\n")
 
   # print the table of descriptive statistics
   cat("Descriptives: \n")
-  print(x$descriptives)
+  desc <- lapply(x$descriptives, function(x) {
+    format(x, width = 10, digits = 3, nsmall = 3, justify = "right")
+  })
+  mk_pad <- function(n) {paste0(rep(" ", max(c(0, n))), collapse="")}
+  ttl_pad <- mk_pad(nchar(x$descriptives$sample)-10)
+  lft_pad <- mk_pad(min(4, max(nchar(x$descriptives$sample)-10)))
+  cat(lft_pad, ttl_pad, "    sample", "      mean", "        sd", "\n", sep="")
+  for(i in 1:nrow(x$descriptives)) {
+    cat(lft_pad, desc[[1]][i], desc[[2]][i], desc[[3]][i], "\n", sep="")
+  }
   cat("\n")
 
   # print the hypotheses being tested
@@ -53,15 +62,15 @@ print.lsr_ttest <- function(x, digits = 3, ...) {
 
   # print the test results
   cat("Test results: \n")
-  cat("   t-statistic:        ", round_def(x$test$t), "\n")
-  cat("   degrees of freedom: ", round_def(x$test$df), "\n")
-  cat("   p-value:            ", ifelse(x$test$p<.001, "<.001", round_def(x$test$p)), "\n")
+  cat("    t-statistic:        ", round_def(x$test$t), "\n")
+  cat("    degrees of freedom: ", round_def(x$test$df), "\n")
+  cat("    p-value:            ", ifelse(x$test$p<.001, "<.001", round_def(x$test$p)), "\n")
   cat("\n")
 
   # print the confidence interval
   cat(round(x$test$ci_level * 100), "% confidence interval:", "\n", sep = "")
-  cat("   lower bound: ", round_def(x$test$ci_lower), "\n")
-  cat("   upper bound: ", round_def(x$test$ci_upper), "\n")
+  cat("    lower bound: ", round_def(x$test$ci_lower), "\n")
+  cat("    upper bound: ", round_def(x$test$ci_upper), "\n")
   cat("\n")
 
   return(invisible(x))

@@ -3,7 +3,7 @@
 new_tbl <- function(n = 20) {
   tibble(
     out = rnorm(n = 2*n) + rep(c(0,1), n),
-    grp = rep(c("time 1", "time 2"), n),
+    grp = rep(c("veryverylongtime 1", "veryverylongtime 2"), n),
     id = as.character(paste0("subj", gl(n, 2)))
   )
 }
