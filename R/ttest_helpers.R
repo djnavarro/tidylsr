@@ -77,22 +77,22 @@ get_verbose_hypotheses <- function(x) {
 
   if(tt == "one" & xa == "two.sided") {
     return(c(
-      null = paste0("population mean equals", nm),
-      altr = paste0("population mean not equal to", nm)
+      null = paste0("population mean equals ", nm),
+      altr = paste0("population mean not equal to ", nm)
     ))
   }
 
   if(tt == "one" & xa == "greater") {
     return(c(
-      null = paste0("population mean less than or equal to", nm),
-      altr = paste0("population mean greater than", nm)
+      null = paste0("population mean less than or equal to ", nm),
+      altr = paste0("population mean greater than ", nm)
     ))
   }
 
   if(tt == "one" & xa == "less") {
     return(c(
-      null = paste0("population mean greater than or equal to", nm),
-      altr = paste0("population mean less than", nm)
+      null = paste0("population mean greater than or equal to ", nm),
+      altr = paste0("population mean less than ", nm)
     ))
   }
 
@@ -100,21 +100,21 @@ get_verbose_hypotheses <- function(x) {
 
   if(tt == "two" & xa == "two.sided") {
     return(c(
-      null = paste0("population mean are equal"),
+      null = paste0("population means are equal"),
       altr = paste0("population means are different")
     ))
   }
 
   if(tt == "two" & xa == "greater") {
     return(c(
-      null = paste0("population mean is equal, or smaller for '", sm, "'"),
-      altr = paste0("population mean is greater for '", sm)
+      null = paste0("population means are equal, or smaller for '", sm, "'"),
+      altr = paste0("population mean are greater for '", sm)
     ))
   }
 
   if(tt == "two" & xa == "less") {
     return(c(
-      null = paste0("population mean is equal, or greater for '", sm, "'"),
+      null = paste0("population means are equal, or greater for '", sm, "'"),
       altr = paste0("population mean is less for '", sm)
     ))
   }
