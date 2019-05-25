@@ -60,8 +60,8 @@ print.lsr_ttest <- function(x, digits = 3, ...) {
 
   # print the confidence interval
   cat(round(x$test$ci_level * 100), "% confidence interval:", "\n", sep = "")
-  cat("   lower bound: ", round_def(x$test$ci_lower[1]), "\n")
-  cat("   upper bound: ", round_def(x$test$ci_upper[2]), "\n")
+  cat("   lower bound: ", round_def(x$test$ci_lower), "\n")
+  cat("   upper bound: ", round_def(x$test$ci_upper), "\n")
   cat("\n")
 
   return(invisible(x))
