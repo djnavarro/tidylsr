@@ -5,3 +5,7 @@
 ^README.Rmd$
 ^codecov\.yml$
 ^other$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^README\.Rmd$

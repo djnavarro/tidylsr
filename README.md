@@ -1,7 +1,9 @@
-The tidylsr package
-================
-Danielle Navarro
-18 May 2019
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# tidylsr
+
+<!-- badges: start -->
 
 [![Travis build
 status](https://travis-ci.org/djnavarro/tidylsr.svg?branch=master)](https://travis-ci.org/djnavarro/tidylsr)
@@ -11,8 +13,11 @@ coverage](https://codecov.io/gh/djnavarro/tidylsr/branch/master/graph/badge.svg)
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/tidylsr)](https://cran.r-project.org/package=tidylsr)
+<!-- badges: end -->
 
+<!--
 <img src = "./other/tidylsr.png" width = "200px" style = "float:right">
+-->
 
 Rethinking the `lsr` package that accompanies [Learning Statistics with
 R](https://learningstatisticswithr.com). In the original book, the goal
