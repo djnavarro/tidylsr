@@ -9,3 +9,5 @@
 ^docs$
 ^pkgdown$
 ^README\.Rmd$
+^\.workbch$
+
